@@ -1,9 +1,12 @@
 from ast import Break
 from curses import window
+from hmac import new
 from tkinter import *
 from tkinter import messagebox
 from random import choice, randint, shuffle
+from xml.etree.ElementTree import indent
 import pyperclip
+import json
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 def generator(): 
     #Password Generator Project
@@ -31,18 +34,32 @@ def save():
     email = email_entry.get()
     password = password_entry.get()
     
+    newData = {
+        website:{
+            "Email": email,
+            "Password":password
+        }
+    }
+
+    
     if not website or not email or not password:
         messagebox.showinfo(title="Please enter your details", message="empty fields")
         return
     
     
-    ok = messagebox.askokcancel(title=website, message="are you sure you want to save?")
-    if ok:
-        with open('password.txt', 'a') as f:
-            f.write("\n"f"{website} -- {email}  == {password}")
+    try:
+        with open('password.json', 'r') as f:
+            data = json.load(f)# read the old data
+            data.update(newData)# update the old data
+    except FileNotFoundError:
+        with open('password.json', 'w') as f:
+            json.dump(newData, f, indent=4)
+    else:
+        with open('password.json', 'w') as f:
+            json.dump(data,f,indent=4)# save the updated data
+    finally:
         website_entry.delete(0, 'end')
         password_entry.delete(0, 'end')
-
 
 
 # ---------------------------- UI SETUP ------------------------------- #
