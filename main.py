@@ -4,10 +4,37 @@ from hmac import new
 from tkinter import *
 from tkinter import messagebox
 from random import choice, randint, shuffle
-from xml.etree.ElementTree import indent
 import pyperclip
+from Crypto.Cipher import AES
+from Crypto import Random
 import json
+import ast
+import base64
+import hashlib
+
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
+key = b'Sixteen byte key'
+iv = Random.new().read(AES.block_size)
+bs = AES.block_size
+
+def _pad(s):
+    return s + (bs - len(s) % bs) * chr(bs - len(s) % bs)
+
+def _unpad(s):
+    return s[:-ord(s[len(s)-1:])]
+    
+def encrypt(raw):
+    raw = _pad(raw)
+    iv = Random.new().read(AES.block_size)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return base64.b64encode(iv + cipher.encrypt(raw.encode()))
+
+def decrypt(enc):
+    enc = base64.b64decode(enc)
+    iv = enc[:AES.block_size]
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return _unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
+
 def generator(): 
     #Password Generator Project
     letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
@@ -33,11 +60,11 @@ def save():
     website = website_entry.get()
     email = email_entry.get()
     password = password_entry.get()
-    
+    encryptedPassword = encrypt(password).decode('utf-8')
     newData = {
         website:{
             "Email": email,
-            "Password":password
+            "Password":encryptedPassword   
         }
     }
 
@@ -68,7 +95,10 @@ def search():
             data = json.load(f)
             Email = data[website]['Email']
             Password = data[website]['Password']
-            messagebox.showinfo(title="Your email and password is", message=f"Email: {Email} password: {Password}")
+            decryptedPassword = decrypt(Password.encode('utf-8'))
+            
+            messagebox.showinfo(title="Your email and password is", message=f"Email: {Email} password: {decryptedPassword}")
+            
         except KeyError as e:
             messagebox.showinfo(title="Your email and password is", message=f"{e} is not found")
     
