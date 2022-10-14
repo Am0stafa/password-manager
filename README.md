@@ -1,8 +1,9 @@
-# Password Manager
-
+# Password Manager Clone one password
 
 ## Concepts Practised
 - Catching Exceptions: The try catch except finally Pattern
+- encrypting Password before storing
+- decrypting the password to be despla
 - Raising Exceptions
 - IndexError Handling
 - KeyError Handling
